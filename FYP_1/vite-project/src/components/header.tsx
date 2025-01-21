@@ -32,6 +32,7 @@ import {
 import { auth } from "@/firebase/config"; // Ensure this is properly configured
 // const [displayName, setDisplayName] = useState<string>("");
 // Google Sign-In Button Component
+
 function GoogleSignInButton() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
@@ -367,12 +368,12 @@ export default function Header() {
           >
             Home
           </Link>
-          {/* <Link
+          <Link
             to="/product-demo"
             className="text-foreground hover:text-primary hover:bg-primary/10 px-3 py-2 rounded-md transition-colors"
           >
             Product
-          </Link> */}
+          </Link>
           <Link
             to="/explore"
             className="text-foreground hover:text-primary hover:bg-primary/10 px-3 py-2 rounded-md transition-colors"

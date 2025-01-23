@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Product } from "@/types/Product";
-import { ProductCard } from "@/components/ProductCard";
-import { SearchBar } from "@/components/SearchBar";
+import { ProductCard } from "@/components/codedComponents/ProductCard";
+import { SearchBar } from "@/components/codedComponents/SearchBar";
 
 const ProductGrid: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);

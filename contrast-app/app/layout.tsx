@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
-import Header from "@/components/codedComponents/header";
+// import Header from "@/components/codedComponents/header";
 
 const inter = Inter({
   weight: ["400","600","800"],

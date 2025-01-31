@@ -55,3 +55,4 @@ export const SearchBar: React.FC<SearchBarProps> = ({ onSearch }) => {
     </form>
   );
 };
+

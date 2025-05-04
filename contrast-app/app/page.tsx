@@ -1,93 +1,179 @@
 import Link from "next/link"
+import Image from "next/image"
+import { ArrowRight } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { categories } from "@/lib/data"
+import ProductGrid from "@/components/product/product-grid"
+import UstaadChatSubscreen from "@/components/UstaadChatSubscreen"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { AlertCircle } from "lucide-react"
 
-export default function Home() {
-  return (
-    <div className="relative min-h-screen overflow-hidden bg-black">
-      {/* Gradient Background */}
-      <div className="absolute inset-0 bg-gradient-to-tr from-black via-purple-900/50 to-black" />
-
-      {/* Animated Stars */}
-      <div className="absolute inset-0">
-        {[...Array(50)].map((_, i) => (
-          <div
-            key={i}
-            className="absolute rounded-full bg-white"
-            style={{
-              width: Math.random() * 2 + 1 + "px",
-              height: Math.random() * 2 + 1 + "px",
-              top: Math.random() * 100 + "%",
-              left: Math.random() * 100 + "%",
-              animation: `twinkle ${Math.random() * 5 + 3}s linear infinite ${Math.random() * 5}s`,
-              opacity: Math.random(),
-            }}
-          />
-        ))}
-      </div>
-
-      {/* Grid Pattern */}
-      <div
-        className="absolute inset-0"
-        style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 40 40'%3E%3Cpath d='M0 0h40v40H0V0zm1 1h38v38H1V1z' fill='%239C92AC' fill-opacity='0.1'/%3E%3C/svg%3E")`,
-          maskImage: "radial-gradient(circle at center, white, transparent 80%)",
-        }}
-      />
-
-      {/* Purple Glow */}
-      <div className="absolute top-1/4 -left-1/4 w-1/2 h-1/2 bg-purple-500/30 rounded-full blur-2xl" />
-      <div className="absolute top-1/4 -right-1/4 w-1/2 h-1/2 bg-purple-500/30 rounded-full blur-2xl" />
-
-      {/* Content */}
-      <div className="relative mx-auto max-w-7xl px-6 py-24 md:py-32 lg:px-8 lg:py-40">
-        <div className="text-center">
-          {/* Badge */}
-          <div className="mb-8 inline-flex items-center rounded-full border border-purple-400/30 bg-purple-400/10 px-3 py-1">
-            <span className="mr-2 inline-block h-2 w-2 rounded-full bg-purple-400 animate-pulse" />
-            <span className="text-sm font-medium text-purple-300">Discover the Future of Shopping</span>
-          </div>
-
-          {/* Main Heading */}
-          <h1 className="mx-auto max-w-4xl bg-gradient-to-b from-white to-purple-200/80 bg-clip-text text-transparent text-4xl font-bold tracking-tight sm:text-7xl">
-            Your One-Stop Fashion
-            <span className="block">Comparison Platform</span>
-          </h1>
-
-          {/* Description */}
-          <p className="mx-auto mt-6 max-w-2xl text-lg leading-8 text-purple-100/80">
-            Compare prices and styles across Pakistan's leading fashion brands. Find your perfect outfit at the perfect
-            price, all in one place.
-          </p>
-
-          {/* CTA Buttons */}
-          <div className="mt-10 flex items-center justify-center gap-x-6">
-            <Link href="/explore" passHref>
-              <button className="rounded-lg bg-purple-500 px-8 py-3 text-base font-semibold text-white shadow-lg shadow-purple-500/30 hover:bg-purple-400 transition-all duration-300 hover:shadow-purple-500/40">
-                Start Exploring
-              </button>
-            </Link>
-            <Link href="/product-demo" passHref>
-              <button className="rounded-lg border border-purple-400/30 bg-purple-400/10 px-8 py-3 text-base font-semibold text-purple-200 hover:bg-purple-400/20 transition-all duration-300">
-                View Demo Product
-              </button>
-            </Link>
-          </div>
-
-          {/* Stats Section */}
-          <div className="mt-16 grid grid-cols-1 gap-8 sm:grid-cols-3 lg:mt-24">
-            {[
-              { number: "10K+", label: "Active Users" },
-              { number: "50+", label: "Fashion Brands" },
-              { number: "24/7", label: "Price Updates" },
-            ].map((stat, index) => (
-              <div key={index} className="flex flex-col items-center justify-center">
-                <div className="text-4xl font-bold text-white">{stat.number}</div>
-                <div className="mt-2 text-base text-purple-200/60">{stat.label}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    </div>
-  )
+interface Store {
+  store_id: number
+  store_name: string
+  _count: {
+    products: number
+  }
 }
 
+async function getFeaturedProducts() {
+  try {
+    const baseUrl = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000';
+    const res = await fetch(`${baseUrl}/api/featured`, {
+      next: { revalidate: 3600 } // Revalidate every hour
+    })
+    if (!res.ok) throw new Error('Failed to fetch featured products')
+    return res.json()
+  } catch (error) {
+    console.error('Error fetching featured products:', error)
+    return []
+  }
+}
+
+async function getStores() {
+  try {
+    const baseUrl = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000';
+    const res = await fetch(`${baseUrl}/api/stores`, {
+      next: { revalidate: 3600 } // Revalidate every hour
+    })
+    if (!res.ok) throw new Error('Failed to fetch stores')
+    return res.json()
+  } catch (error) {
+    console.error('Error fetching stores:', error)
+    return []
+  }
+}
+
+export default async function Home() {
+  const [featuredProducts, stores] = await Promise.all([
+    getFeaturedProducts(),
+    getStores()
+  ])
+
+  return (
+    <>
+      {/* Ustaad Chat Subscreen Floating Button */}
+      <UstaadChatSubscreen />
+
+      <div className="flex flex-col min-h-screen">
+        {/* Hero Section */}
+        <section className="hero-gradient py-20 md:py-28">
+          <div className="container mx-auto px-4 py-10 sm:px-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-10 lg:gap-16">
+              <div className="space-y-8">
+                <div>
+                  <h1 className="text-4xl md:text-5xl font-bold tracking-tight">
+                    Track Prices.
+                    <br />
+                    <span className="text-primary">Save on Luxury.</span>
+                  </h1>
+                  <p className="mt-6 text-lg text-muted-foreground">
+                    Monitor price drops on your favorite designer pieces and never miss a sale again.
+                  </p>
+                  <div className="mt-8">
+                    <Button size="lg" asChild>
+                      <Link href="/products">Browse Products</Link>
+                    </Button>
+                  </div>
+                </div>
+              </div>
+              <div className="relative aspect-[4/3] overflow-hidden rounded-lg">
+                <video
+                  autoPlay
+                  muted
+                  loop
+                  playsInline
+                  className="w-full h-full object-cover"
+                >
+                  <source src="/3255323-uhd_3840_2160_25fps.mp4" type="video/mp4" />
+                  Your browser does not support the video tag.
+                </video>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Featured Products */}
+        <section className="py-16 blue-gradient-bg">
+          <div className="container mx-auto px-4 sm:px-6">
+            <div className="flex items-center justify-between mb-10">
+              <h2 className="text-2xl md:text-3xl font-medium">Featured Products</h2>
+              <Button variant="ghost" asChild>
+                <Link href="/products" className="flex items-center">
+                  View All <ArrowRight className="ml-2 h-4 w-4" />
+                </Link>
+              </Button>
+            </div>
+            {featuredProducts.length > 0 ? (
+              <ProductGrid products={featuredProducts} />
+            ) : (
+              <Alert>
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>
+                  No featured products available at the moment.
+                </AlertDescription>
+              </Alert>
+            )}
+          </div>
+        </section>
+
+        {/* Brands */}
+        <section className="py-16">
+          <div className="container mx-auto px-4 sm:px-6">
+            <div className="flex items-center justify-between mb-10">
+              <h2 className="text-2xl md:text-3xl font-medium">Featured Brands</h2>
+              <Button variant="ghost" asChild>
+                <Link href="/products" className="flex items-center">
+                  View All <ArrowRight className="ml-2 h-4 w-4" />
+                </Link>
+              </Button>
+            </div>
+            {stores.length > 0 ? (
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">
+                {stores.map((store: Store) => (
+                  <Link
+                    key={store.store_id}
+                    href={`/products?store=${store.store_name}`}
+                    className="flex items-center justify-center h-24 bg-white dark:bg-gray-800 rounded-lg border card-hover"
+                  >
+                    <span className="text-lg">{store.store_name}</span>
+                    <span className="ml-2 text-sm text-muted-foreground">
+                      ({store._count.products})
+                    </span>
+                  </Link>
+                ))}
+              </div>
+            ) : (
+              <Alert>
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>
+                  No stores available at the moment.
+                </AlertDescription>
+              </Alert>
+            )}
+          </div>
+        </section>
+
+        {/* CTA Section */}
+        <section className="py-16 bg-primary/10 dark:bg-primary/5">
+          <div className="container mx-auto px-4 sm:px-6">
+            <div className="max-w-3xl mx-auto text-center space-y-6">
+              <h2 className="text-3xl md:text-4xl font-medium">Never Miss a Price Drop Again</h2>
+              <p className="text-base md:text-lg opacity-90">
+                Sign up to track your favorite luxury items and get notified when prices drop.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <Button size="lg" variant="default" className="rounded-md" asChild>
+                  <Link href="/auth/signup">Create Account</Link>
+                </Button>
+                <Button size="lg" variant="outline" className="rounded-md border-primary/20 hover:bg-primary/10" asChild>
+                  <Link href="/categories">Browse Products</Link>
+                </Button>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </>
+  )
+}

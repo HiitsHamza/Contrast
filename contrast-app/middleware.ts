@@ -1,12 +1,35 @@
-import { clerkMiddleware } from "@clerk/nextjs/server";
+import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
 
-export default clerkMiddleware();
+// Add paths that require authentication here
+const protectedPaths = ['/profile', '/lists', '/likes'];
+
+export function middleware(request: NextRequest) {
+  const session = request.cookies.get('session');
+  const pathname = request.nextUrl.pathname;
+
+  // Check if the path requires authentication
+  const isProtectedPath = protectedPaths.some(path => pathname.startsWith(path));
+
+  if (isProtectedPath && !session) {
+    const url = new URL('/auth/login', request.url);
+    url.searchParams.set('from', pathname);
+    return NextResponse.redirect(url);
+  }
+
+  return NextResponse.next();
+}
 
 export const config = {
   matcher: [
-    // Skip Next.js internals and all static files, unless found in search params
-    '/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)',
-    // Always run for API routes
-    '/(api|trpc)(.*)',
+    /*
+     * Match all request paths except for the ones starting with:
+     * - api (API routes)
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     * - public folder
+     */
+    '/((?!api|_next/static|_next/image|favicon.ico|public).*)',
   ],
-};
+}; 

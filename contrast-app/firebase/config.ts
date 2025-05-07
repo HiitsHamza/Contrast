@@ -1,2 +1,0 @@
-// Add Firebase configuration
-

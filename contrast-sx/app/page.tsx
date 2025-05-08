@@ -13,6 +13,7 @@ import MinimizedAiChat from "@/components/minimized-ai-chat"
 import ProductGrid from "@/components/product-grid"
 import { Button } from "@/components/ui/button"
 import { Compass } from "lucide-react"
+import { useRouter } from "next/navigation"
 
 export default function Home() {
   const [isLoaded, setIsLoaded] = useState(false)
@@ -21,6 +22,7 @@ export default function Home() {
   const [searchQuery, setSearchQuery] = useState("")
   const [isAiChatOpen, setIsAiChatOpen] = useState(false)
   const [isExpandingChat, setIsExpandingChat] = useState(false)
+  const router = useRouter()
 
   useEffect(() => {
     // Set loaded state after a delay to allow intro animation to play
@@ -32,15 +34,13 @@ export default function Home() {
   }, [])
 
   const handleSearch = (query: string) => {
-    setSearchQuery(query)
-    setIsSearching(true)
+    if (!query.trim()) return;
+    
+    setSearchQuery(query);
+    setIsSearching(true);
 
-    // Delay setting hasSearched to allow for transition animation
-    setTimeout(() => {
-      setHasSearched(true)
-      setIsSearching(false)
-      setIsAiChatOpen(false) // Close AI chat when searching
-    }, 600) // Match this with the animation duration
+    // Navigate to explore page with search query
+    router.push(`/explore?query=${encodeURIComponent(query)}`);
   }
 
   const toggleAiChat = () => {
@@ -173,7 +173,7 @@ export default function Home() {
           </Button>
           <Button
             size="sm"
-            className="rounded-full bg-deepblue-600 text-white hover:bg-deepblue-700 dark:bg-deepblue-600 dark:text-white dark:hover:bg-deepblue-700"
+            className="rounded-full bg-deepblue-600 text-white hover:bg-deepblue-700"
           >
             Join
           </Button>

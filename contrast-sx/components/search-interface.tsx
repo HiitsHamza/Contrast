@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Search } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { motion } from "framer-motion"
@@ -15,10 +15,14 @@ interface SearchInterfaceProps {
 
 export default function SearchInterface({ onSearch, initialValue = "", compact = false }: SearchInterfaceProps) {
   const [searchQuery, setSearchQuery] = useState(initialValue)
+  
+  // Update search query when initialValue changes
+  useEffect(() => {
+    setSearchQuery(initialValue)
+  }, [initialValue])
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
-    console.log("Searching for:", searchQuery)
     if (onSearch && searchQuery.trim()) {
       onSearch(searchQuery)
     }
@@ -44,6 +48,13 @@ export default function SearchInterface({ onSearch, initialValue = "", compact =
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
         />
+        <button 
+          type="submit" 
+          className="sr-only"
+          aria-label="Search"
+        >
+          Search
+        </button>
       </form>
     </motion.div>
   )

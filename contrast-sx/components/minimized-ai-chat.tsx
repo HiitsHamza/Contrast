@@ -7,11 +7,15 @@ import { Button } from "@/components/ui/button"
 
 interface MinimizedAiChatProps {
   isOpen: boolean
-  toggleChat: () => void
+  toggleChat?: () => void
+  onToggle?: () => void
 }
 
-export default function MinimizedAiChat({ isOpen, toggleChat }: MinimizedAiChatProps) {
+export default function MinimizedAiChat({ isOpen, toggleChat, onToggle }: MinimizedAiChatProps) {
   const router = useRouter()
+  
+  // Support both prop naming patterns
+  const handleToggle = toggleChat || onToggle || (() => {})
 
   const handleExpandChat = () => {
     // Add a small delay to allow for animation
@@ -27,7 +31,7 @@ export default function MinimizedAiChat({ isOpen, toggleChat }: MinimizedAiChatP
         className="fixed bottom-6 right-6 h-14 w-14 rounded-full bg-deepblue-600 text-white shadow-lg flex items-center justify-center z-30 hover:bg-deepblue-700 transition-colors"
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
-        onClick={toggleChat}
+        onClick={handleToggle}
         initial={{ opacity: 0, scale: 0, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         transition={{
@@ -71,7 +75,7 @@ export default function MinimizedAiChat({ isOpen, toggleChat }: MinimizedAiChatP
                   <span className="sr-only">Expand chat</span>
                 </Button>
                 <button
-                  onClick={toggleChat}
+                  onClick={handleToggle}
                   className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
                 >
                   <X className="h-5 w-5" />

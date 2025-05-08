@@ -7,24 +7,53 @@ import { ChevronLeft, ChevronRight, Heart, ExternalLink, Info } from "lucide-rea
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import PriceHistoryGraph from "@/components/price-history-graph"
-import { products } from "@/data/products"
 import Link from "next/link"
 import ThemeToggle from "@/components/theme-toggle"
+import { getProductById } from "@/lib/product-service"
+import type { Product } from "@/types/product"
 
 export default function ProductDetailPage({ params }: { params: { id: string } }) {
   const router = useRouter()
   const productId = Number.parseInt(params.id)
-  const product = products.find((p) => p.id === productId)
-
+  
+  const [product, setProduct] = useState<Product | null>(null)
+  const [loading, setLoading] = useState(true)
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
   const [isLiked, setIsLiked] = useState(false)
 
-  // If product not found, redirect to home
   useEffect(() => {
-    if (!product) {
-      router.push("/")
+    const fetchProduct = async () => {
+      try {
+        setLoading(true)
+        const fetchedProduct = await getProductById(productId)
+        
+        if (fetchedProduct) {
+          setProduct(fetchedProduct)
+        } else {
+          // If product not found, redirect to home
+          router.push("/")
+        }
+      } catch (error) {
+        console.error("Failed to fetch product:", error)
+        router.push("/")
+      } finally {
+        setLoading(false)
+      }
     }
-  }, [product, router])
+
+    fetchProduct()
+  }, [productId, router])
+
+  // If loading or no product found, show loading state
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-950 transition-colors duration-300">
+        <div className="max-w-screen-xl mx-auto py-8 px-4 md:px-6">
+          <div className="h-[80vh] bg-gray-100 dark:bg-gray-800 rounded-xl animate-pulse" />
+        </div>
+      </div>
+    )
+  }
 
   if (!product) {
     return null
@@ -74,16 +103,22 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
           {/* Product images */}
           <div className="relative rounded-xl overflow-hidden bg-white dark:bg-gray-900 shadow-sm border border-gray-100 dark:border-gray-800">
             <div className="relative aspect-square">
-              <Image
-                src={product.images[currentImageIndex].src || "/placeholder.svg"}
-                alt={product.images[currentImageIndex].alt}
-                fill
-                className="object-cover"
-              />
+              {product.images && product.images.length > 0 && currentImageIndex < product.images.length ? (
+                <Image
+                  src={product.images[currentImageIndex]?.src || "/placeholder.svg"}
+                  alt={product.images[currentImageIndex]?.alt || product.name}
+                  fill
+                  className="object-cover"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center bg-gray-100 dark:bg-gray-800">
+                  <span className="text-gray-500 dark:text-gray-400">No image available</span>
+                </div>
+              )}
             </div>
 
-            {/* Image navigation */}
-            {product.images.length > 1 && (
+            {/* Image navigation - only show if we have multiple valid images */}
+            {product.images && product.images.length > 1 && (
               <>
                 <button
                   onClick={prevImage}
@@ -156,11 +191,45 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
             <div className="mb-6">
               <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-2 flex items-center gap-2">
                 Price History
-                <Info className="h-4 w-4 text-gray-500" />
+                <span className="relative group">
+                  <Info className="h-4 w-4 text-gray-500 cursor-help" />
+                  <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 text-xs bg-gray-900 text-white rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
+                    Shows how the price has changed over time
+                  </span>
+                </span>
               </h2>
-              <div className="h-48 bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
-                <PriceHistoryGraph priceHistory={product.priceHistory} />
-              </div>
+              {product.priceHistory.length > 0 ? (
+                <>
+                  <div className="h-48 bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
+                    <PriceHistoryGraph priceHistory={product.priceHistory} />
+                  </div>
+                  
+                  {product.priceHistory.length >= 2 && (
+                    <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm text-gray-600 dark:text-gray-400">
+                      <div>
+                        <span className="font-medium">First recorded:</span>{' '}
+                        ${product.priceHistory[0].price.toFixed(2)} on {new Date(product.priceHistory[0].date).toLocaleDateString()}
+                      </div>
+                      
+                      <div>
+                        <span className="font-medium">Current price:</span>{' '}
+                        ${product.priceHistory[product.priceHistory.length - 1].price.toFixed(2)}
+                      </div>
+                      
+                      {product.priceHistory.length > 2 && (
+                        <div>
+                          <span className="font-medium">Price changes:</span>{' '}
+                          {product.priceHistory.length - 1} times
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </>
+              ) : (
+                <div className="h-48 bg-gray-50 dark:bg-gray-800 rounded-lg flex items-center justify-center">
+                  <p className="text-gray-500 dark:text-gray-400">No price history available</p>
+                </div>
+              )}
             </div>
 
             {/* CTA Buttons */}

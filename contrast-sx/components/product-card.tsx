@@ -82,12 +82,16 @@ export default function ProductCard({ product }: ProductCardProps) {
 
   const nextImage = (e: React.MouseEvent) => {
     e.stopPropagation() // Prevent card click
-    setCurrentImageIndex((prev) => (prev + 1) % product.images.length)
+    if (product.images && product.images.length > 1) {
+      setCurrentImageIndex((prev) => (prev + 1) % product.images.length)
+    }
   }
 
   const prevImage = (e: React.MouseEvent) => {
     e.stopPropagation() // Prevent card click
-    setCurrentImageIndex((prev) => (prev - 1 + product.images.length) % product.images.length)
+    if (product.images && product.images.length > 1) {
+      setCurrentImageIndex((prev) => (prev - 1 + product.images.length) % product.images.length)
+    }
   }
 
   const toggleLike = (e: React.MouseEvent) => {
@@ -126,15 +130,21 @@ export default function ProductCard({ product }: ProductCardProps) {
       {/* Image carousel */}
       <div className="relative h-64 w-full bg-gray-100 dark:bg-gray-800 overflow-hidden">
         {/* Current image */}
-        <Image
-          src={product.images[currentImageIndex].src || "/placeholder.svg"}
-          alt={product.images[currentImageIndex].alt}
-          fill
-          className="object-cover transition-transform duration-300 group-hover:scale-105"
-        />
+        {product.images && product.images.length > 0 && currentImageIndex < product.images.length ? (
+          <Image
+            src={product.images[currentImageIndex]?.src || "/placeholder.svg"}
+            alt={product.images[currentImageIndex]?.alt || product.name}
+            fill
+            className="object-cover transition-transform duration-300 group-hover:scale-105"
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center">
+            <span className="text-gray-500 dark:text-gray-400">No image available</span>
+          </div>
+        )}
 
         {/* Navigation arrows */}
-        {product.images.length > 1 && (
+        {product.images && product.images.length > 1 && (
           <>
             <button
               onClick={prevImage}
@@ -154,7 +164,7 @@ export default function ProductCard({ product }: ProductCardProps) {
         )}
 
         {/* Image indicators */}
-        {product.images.length > 1 && (
+        {product.images && product.images.length > 1 && (
           <div className="absolute bottom-2 left-0 right-0 flex justify-center gap-1.5">
             {product.images.map((_, index) => (
               <button

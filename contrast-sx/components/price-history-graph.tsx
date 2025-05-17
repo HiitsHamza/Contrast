@@ -72,7 +72,7 @@ export default function PriceHistoryGraph({ priceHistory }: PriceHistoryGraphPro
       ctx.font = "10px sans-serif"
       ctx.textAlign = "right"
       ctx.textBaseline = "middle"
-      ctx.fillText(`$${price.toFixed(2)}`, padding.left - 5, y)
+      ctx.fillText(`Rs. ${price.toFixed(2)}`, padding.left - 5, y)
     }
     
     // Vertical grid lines and date labels (one for each price point)

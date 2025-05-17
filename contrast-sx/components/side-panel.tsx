@@ -194,7 +194,7 @@ export default function SidePanel() {
 
   // Format price for display
   const formatPrice = (price: number) => {
-    return `$${price.toLocaleString()}`
+    return `Rs. ${price.toLocaleString()}`
   }
 
   return (

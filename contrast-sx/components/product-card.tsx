@@ -9,9 +9,14 @@ import { Heart, ChevronLeft, ChevronRight } from "lucide-react"
 import { motion } from "framer-motion"
 import { Badge } from "@/components/ui/badge"
 import type { Product } from "@/types/product"
+import { useWishlist } from '@/lib/wishlist-context'
+import { useAuth } from '@/lib/auth-context'
+import { cn } from '@/lib/utils'
 
 interface ProductCardProps {
   product: Product
+  onWishlistToggle?: () => void
+  isInWishlist?: boolean
 }
 
 export type ProductImage = {
@@ -24,14 +29,18 @@ export type PricePoint = {
   price: number
 }
 
-export default function ProductCard({ product }: ProductCardProps) {
+export default function ProductCard({ product, onWishlistToggle, isInWishlist: propIsInWishlist }: ProductCardProps) {
+  const { user } = useAuth()
+  const { addItem, removeItem, isItemInWishlist } = useWishlist()
   const router = useRouter()
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
-  const [isLiked, setIsLiked] = useState(false)
   const [isHovering, setIsHovering] = useState(false)
   const [progress, setProgress] = useState(0)
   const progressInterval = useRef<NodeJS.Timeout | null>(null)
   const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+
+  // Use the passed isInWishlist prop if available, otherwise check the wishlist context
+  const isInWishlist = propIsInWishlist !== undefined ? propIsInWishlist : isItemInWishlist(product.id)
 
   // Handle hover state
   const handleMouseEnter = () => {
@@ -94,18 +103,53 @@ export default function ProductCard({ product }: ProductCardProps) {
     }
   }
 
-  const toggleLike = (e: React.MouseEvent) => {
+  const handleWishlistToggle = (e: React.MouseEvent) => {
     e.stopPropagation() // Prevent card click
-    setIsLiked(!isLiked)
-  }
+    
+    if (!user) {
+      // Redirect to sign in if not authenticated
+      console.log('User not authenticated, redirecting to signin');
+      router.push('/signin');
+      return;
+    }
+
+    console.log('Toggling wishlist for product:', product.id, isInWishlist ? 'remove' : 'add');
+    
+    try {
+      if (onWishlistToggle) {
+        onWishlistToggle();
+      } else {
+        if (isInWishlist) {
+          console.log('Removing from wishlist:', product.id);
+          removeItem(product.id);
+        } else {
+          console.log('Adding to wishlist:', product.id);
+          
+          // Create a simplified version of the product for storage
+          const productToSave = {
+            id: product.id,
+            name: product.name,
+            brand: product.brand,
+            price: product.price,
+            // Only include originalPrice if it's defined
+            ...(product.originalPrice ? { originalPrice: product.originalPrice } : {}),
+            imageUrl: product.imageUrl || (product.images && product.images.length > 0 ? product.images[0].src : '/placeholder.svg')
+          };
+          
+          addItem(product.id, productToSave);
+        }
+      }
+    } catch (error) {
+      console.error('Error handling wishlist toggle:', error);
+    }
+  };
 
   const handleCardClick = () => {
     router.push(`/product/${product.id}`)
   }
 
-  const discount = product.originalPrice
-    ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
-    : 0
+  const discountPercent = product.discount || 
+    (product.originalPrice ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100) : 0)
 
   return (
     <motion.div
@@ -182,16 +226,17 @@ export default function ProductCard({ product }: ProductCardProps) {
           </div>
         )}
 
-        {/* Like button */}
+        {/* Wishlist button */}
         <button
-          onClick={toggleLike}
-          className="absolute top-2 right-2 h-8 w-8 rounded-full bg-white/80 dark:bg-black/60 flex items-center justify-center transition-all duration-200 hover:bg-white dark:hover:bg-gray-800"
-          aria-label={isLiked ? "Remove from favorites" : "Add to favorites"}
+          onClick={handleWishlistToggle}
+          className="absolute top-3 right-3 h-10 w-10 rounded-full bg-white/80 dark:bg-black/50 backdrop-blur-sm flex items-center justify-center transition-all duration-300 hover:scale-110 z-10"
+          aria-label={isInWishlist ? "Remove from wishlist" : "Add to wishlist"}
         >
-          <Heart
-            className={`h-5 w-5 ${
-              isLiked ? "text-red-500 fill-red-500" : "text-gray-500 dark:text-gray-400"
-            } transition-colors duration-200`}
+          <Heart 
+            className={cn(
+              "h-5 w-5 transition-colors duration-300", 
+              isInWishlist ? "text-red-500 fill-red-500" : "text-gray-600 dark:text-gray-300"
+            )} 
           />
         </button>
 
@@ -201,6 +246,15 @@ export default function ProductCard({ product }: ProductCardProps) {
             {product.brand}
           </Badge>
         </div>
+
+        {/* Discount tag */}
+        {discountPercent > 0 && (
+          <Badge 
+            className="absolute bottom-3 left-3 bg-red-500 hover:bg-red-600 text-white font-medium"
+          >
+            -{discountPercent}%
+          </Badge>
+        )}
       </div>
 
       {/* Product info - Simplified */}
@@ -211,11 +265,11 @@ export default function ProductCard({ product }: ProductCardProps) {
 
         {/* Price section - Simplified */}
         <div className="flex items-center gap-2">
-          <span className="font-semibold text-gray-900 dark:text-white">${product.price.toFixed(2)}</span>
+          <span className="font-semibold text-gray-900 dark:text-white">Rs. {product.price.toFixed(2)}</span>
           {product.originalPrice && (
-            <span className="text-sm text-gray-500 line-through">${product.originalPrice.toFixed(2)}</span>
+            <span className="text-sm text-gray-500 line-through">Rs. {product.originalPrice.toFixed(2)}</span>
           )}
-          {discount > 0 && <span className="text-xs text-red-500 font-medium">-{discount}%</span>}
+          {discountPercent > 0 && <span className="text-xs text-red-500 font-medium">-{discountPercent}%</span>}
         </div>
       </div>
     </motion.div>

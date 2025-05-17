@@ -163,9 +163,9 @@ export default function ProductCard({ product }: ProductCardProps) {
 
         {/* Price section */}
         <div className="flex items-end gap-2 mb-2">
-          <span className="font-semibold text-gray-900 dark:text-white">${product.price.toFixed(2)}</span>
+          <span className="font-semibold text-gray-900 dark:text-white">Rs. {product.price.toFixed(2)}</span>
           {product.originalPrice && (
-            <span className="text-sm text-gray-500 line-through">${product.originalPrice.toFixed(2)}</span>
+            <span className="text-sm text-gray-500 line-through">Rs. {product.originalPrice.toFixed(2)}</span>
           )}
           <TooltipProvider>
             <Tooltip>

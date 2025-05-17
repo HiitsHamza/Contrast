@@ -85,15 +85,6 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
 
         <div className="flex items-center gap-4">
           <ThemeToggle />
-          <Button variant="ghost" size="sm" className="text-sm font-medium dark:text-gray-300">
-            Sign In
-          </Button>
-          <Button
-            size="sm"
-            className="rounded-full bg-deepblue-600 text-white hover:bg-deepblue-700 dark:bg-deepblue-600 dark:text-white dark:hover:bg-deepblue-700"
-          >
-            Join
-          </Button>
         </div>
       </header>
 
@@ -172,10 +163,10 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
 
             {/* Price */}
             <div className="flex items-center gap-3 mb-6">
-              <span className="text-3xl font-bold text-gray-900 dark:text-white">${product.price.toFixed(2)}</span>
+              <span className="text-3xl font-bold text-gray-900 dark:text-white">Rs. {product.price.toFixed(2)}</span>
               {product.originalPrice && (
                 <>
-                  <span className="text-lg text-gray-500 line-through">${product.originalPrice.toFixed(2)}</span>
+                  <span className="text-lg text-gray-500 line-through">Rs. {product.originalPrice.toFixed(2)}</span>
                   <Badge className="bg-red-500 hover:bg-red-600 text-white">-{discount}%</Badge>
                 </>
               )}
@@ -208,12 +199,12 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
                     <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm text-gray-600 dark:text-gray-400">
                       <div>
                         <span className="font-medium">First recorded:</span>{' '}
-                        ${product.priceHistory[0].price.toFixed(2)} on {new Date(product.priceHistory[0].date).toLocaleDateString()}
+                        Rs. {product.priceHistory[0].price.toFixed(2)} on {new Date(product.priceHistory[0].date).toLocaleDateString()}
                       </div>
                       
                       <div>
                         <span className="font-medium">Current price:</span>{' '}
-                        ${product.priceHistory[product.priceHistory.length - 1].price.toFixed(2)}
+                        Rs. {product.priceHistory[product.priceHistory.length - 1].price.toFixed(2)}
                       </div>
                       
                       {product.priceHistory.length > 2 && (

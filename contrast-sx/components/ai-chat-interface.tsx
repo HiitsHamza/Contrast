@@ -3,7 +3,7 @@
 import type React from "react"
 
 import { useState, useRef, useEffect } from "react"
-import { Send, Maximize2, RefreshCw } from "lucide-react"
+import { Send, Maximize2, RefreshCw, ExternalLink } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
@@ -12,11 +12,13 @@ import { motion } from "framer-motion"
 import AISuggestionsGrid from "@/components/ai-suggestions-grid"
 import { parseAIResponseToSuggestions } from "@/lib/ai-response-parser"
 import type { ProductSuggestion } from "@/types/ai-suggestions"
+import Link from "next/link"
 
 type Message = {
   id: number
   content: string
   isUser: boolean
+  products?: ProductSuggestion[]
 }
 
 interface AiChatInterfaceProps {
@@ -34,41 +36,14 @@ export default function AiChatInterface({ isMinimized = false, isFullPage = fals
       id: 1,
       content: "Hi there! I'm your style assistant. How can I help you find the perfect outfit today?",
       isUser: false,
+      products: [],
     },
   ])
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [productSuggestions, setProductSuggestions] = useState<ProductSuggestion[]>([])
-  const [apiHealthCheckFailed, setApiHealthCheckFailed] = useState(false)
-  const [showFallbackInfo, setShowFallbackInfo] = useState(false)
+  const [showOnlySuggestions, setShowOnlySuggestions] = useState(false)
 
   const scrollAreaRef = useRef<HTMLDivElement>(null)
-
-  // Check API health on mount
-  useEffect(() => {
-    const checkApiHealth = async () => {
-      try {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
-        
-        const response = await fetch(
-          "https://price-contrast-api.onrender.com/api/health",
-          { signal: controller.signal }
-        );
-        
-        clearTimeout(timeoutId);
-        
-        if (!response.ok) {
-          setApiHealthCheckFailed(true);
-        }
-      } catch (err) {
-        console.error("API health check failed:", err);
-        setApiHealthCheckFailed(true);
-      }
-    };
-    
-    checkApiHealth();
-  }, []);
 
   useEffect(() => {
     // Scroll to bottom when messages change
@@ -89,35 +64,13 @@ export default function AiChatInterface({ isMinimized = false, isFullPage = fals
       id: messages.length + 1,
       content: input,
       isUser: true,
+      products: [],
     }
 
     setMessages((prev) => [...prev, userMessage])
     setInput("")
     setIsLoading(true)
     setError(null)
-    // Clear previous suggestions
-    setProductSuggestions([])
-
-    // If we know the API is down, use fallback mode
-    if (apiHealthCheckFailed) {
-      setTimeout(() => {
-        const fallbackResponse = getFallbackResponse(input);
-        const aiMessage: Message = {
-          id: messages.length + 2,
-          content: fallbackResponse.message,
-          isUser: false,
-        }
-        setMessages((prev) => [...prev, aiMessage]);
-        
-        if (fallbackResponse.suggestions && fallbackResponse.suggestions.length > 0) {
-          setProductSuggestions(fallbackResponse.suggestions);
-        }
-        
-        setIsLoading(false);
-        setShowFallbackInfo(true);
-      }, 1000);
-      return;
-    }
 
     try {
       console.log("Sending request to AI API...");
@@ -152,22 +105,27 @@ export default function AiChatInterface({ isMinimized = false, isFullPage = fals
       }
 
       const data = await response.json();
-      console.log("Received API response:", data);
+      // Add detailed logging to see the exact structure of the response
+      console.log("Received API response:", JSON.stringify(data, null, 2));
       
       // Extract the answer text
       const answerText = data.answer || data.response || "Sorry, I couldn't process that."
       
+      // Parse product suggestions from the response
+      const suggestions = parseAIResponseToSuggestions(data)
+      console.log("Extracted suggestions:", suggestions);
+      console.log("Number of suggestions:", suggestions.length);
+
+      // Create AI response message with attached products
       const aiMessage: Message = {
         id: messages.length + 2,
         content: answerText,
         isUser: false,
+        products: suggestions.length > 0 ? suggestions : [],
       }
-      setMessages((prev) => [...prev, aiMessage])
       
-      // Parse product suggestions from the response
-      const suggestions = parseAIResponseToSuggestions(data)
-      console.log("Extracted suggestions:", suggestions)
-      setProductSuggestions(suggestions)
+      // Update messages with the new AI response
+      setMessages((prev) => [...prev, aiMessage])
       
     } catch (err) {
       console.error("Chat error:", err);
@@ -178,7 +136,6 @@ export default function AiChatInterface({ isMinimized = false, isFullPage = fals
       if (err instanceof Error) {
         if (err.name === 'AbortError') {
           errorMessage = "Request timed out. The server might be busy or offline.";
-          setApiHealthCheckFailed(true); // Mark API as down after timeout
         } else {
           errorMessage = `Error: ${err.message}`;
         }
@@ -190,6 +147,7 @@ export default function AiChatInterface({ isMinimized = false, isFullPage = fals
         id: messages.length + 2,
         content: "Sorry, I couldn't process that. Please try again later.",
         isUser: false,
+        products: [],
       }
       setMessages((prev) => [...prev, aiMessage])
     } finally {
@@ -208,67 +166,64 @@ export default function AiChatInterface({ isMinimized = false, isFullPage = fals
   // Check if we're already on the chat page
   const isOnChatPage = pathname === "/chat"
 
-  // Function to get fallback responses when API is unavailable
-  const getFallbackResponse = (query: string) => {
-    const normalizedQuery = query.toLowerCase();
-    
-    // Default fallback suggestions
-    const fallbackSuggestions: ProductSuggestion[] = [
-      {
-        id: 1,
-        name: "White T-shirt",
-        price: "1290.00",
-        image: "https://outfitters.com.pk/cdn/shop/files/F0109125725_8.jpg",
-        url: "https://outfitters.com.pk/collections/men-activewear-sale/products/f0109-125",
-        store: "Outfitters"
-      },
-      {
-        id: 2,
-        name: "Black Jeans",
-        price: "2490.00",
-        image: "https://outfitters.com.pk/cdn/shop/files/F0602103801_1.jpg",
-        url: "https://outfitters.com.pk/collections/men-shirt-sale/products/f0602-103",
-        store: "Outfitters"
-      }
-    ];
-    
-    // Simple keyword matching for fallback mode
-    if (normalizedQuery.includes("shirt") || normalizedQuery.includes("top")) {
-      return {
-        message: "I'm currently operating in offline mode due to server issues, but I can suggest some shirts for you! Check these out:",
-        suggestions: fallbackSuggestions.filter(item => item.name.toLowerCase().includes("shirt"))
-      };
+  // Function to format the response text with enhanced formatting and links
+  const formatResponseText = (text: string, products: ProductSuggestion[] = []) => {
+    if (!products || products.length === 0) {
+      return <p>{text}</p>;
+    }
+
+    // Check if it's a product recommendation response
+    if (text.toLowerCase().includes('here are some') || 
+        text.toLowerCase().includes('suggest') || 
+        text.toLowerCase().includes('options') ||
+        text.toLowerCase().includes('rs.')) {
+      
+      // Extract product information from text to create a better structured response
+      return (
+        <div className="space-y-3">
+          <p className="mb-2">{text.split('Here are').shift() || text.split('options').shift() || "Here are some product recommendations:"}</p>
+          
+          <ul className="space-y-2 mt-3">
+            {products.map((product, index) => (
+              <li key={index} className="flex flex-col bg-deepblue-700/30 rounded-lg p-2 backdrop-blur-sm">
+                <span className="font-medium">{product.name}</span>
+                <div className="flex items-center mt-1">
+                  <span className="font-bold text-green-300">Rs. {product.price}</span>
+                  <span className="mx-2 text-xs text-gray-300">from</span>
+                  <span className="text-gray-200">{product.store}</span>
+                </div>
+                <a 
+                  href={product.url} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1 text-xs text-blue-300 hover:text-blue-200 mt-1 transition-colors"
+                >
+                  View product <ExternalLink className="h-3 w-3" />
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      );
     }
     
-    if (normalizedQuery.includes("jeans") || normalizedQuery.includes("pants") || normalizedQuery.includes("bottoms")) {
-      return {
-        message: "I'm currently operating in offline mode, but I can show you some popular jeans and pants:",
-        suggestions: fallbackSuggestions.filter(item => 
-          item.name.toLowerCase().includes("jeans") || 
-          item.name.toLowerCase().includes("pants"))
-      };
-    }
-    
-    // Generic fallback for any other query
-    return {
-      message: "I'm currently in offline mode due to server connectivity issues. Here are some popular items you might like:",
-      suggestions: fallbackSuggestions
-    };
+    return <p>{text}</p>;
   };
 
   return (
     <div className="flex flex-col h-full relative">
-      {/* API Status Indicator */}
-      {apiHealthCheckFailed && (
-        <div className="bg-amber-100 text-amber-800 px-3 py-1 text-xs rounded-md mb-2 flex items-center">
-          <RefreshCw className="h-3 w-3 mr-1 animate-spin" />
-          Server connectivity issues. Using offline mode.
-        </div>
-      )}
-      
       {/* Scrollable chat area with fixed height */}
       <div className={`flex-1 ${!isFullPage && !isMinimized ? "h-[350px]" : ""} overflow-hidden`}>
         <ScrollArea ref={scrollAreaRef} className="h-full pr-4">
+          {/* Show welcome message if no conversation yet */}
+          {messages.length === 0 && (
+            <div className="py-6 text-center">
+              <h3 className="text-lg font-medium text-gray-200 mb-2">Style Recommendations</h3>
+              <p className="text-sm text-gray-400">Ask for clothing suggestions to see product cards here</p>
+            </div>
+          )}
+          
+          {/* Always show message history */}
           <div className="space-y-4 py-6">
             {messages.map((message) => (
               <div key={message.id} className={`flex ${message.isUser ? "justify-end" : "justify-start"}`}>
@@ -277,7 +232,7 @@ export default function AiChatInterface({ isMinimized = false, isFullPage = fals
                     message.isUser ? "bg-gray-600/90 backdrop-blur-sm text-white" : "bg-deepblue-600 text-white"
                   } transition-colors duration-300 break-words`}
                 >
-                  {message.content}
+                  {message.isUser ? message.content : formatResponseText(message.content, message.products)}
                 </div>
               </div>
             ))}
@@ -297,21 +252,19 @@ export default function AiChatInterface({ isMinimized = false, isFullPage = fals
                 </div>
               </div>
             )}
-            
-            {/* Show fallback mode info */}
-            {showFallbackInfo && (
-              <div className="flex justify-center my-2">
-                <div className="px-3 py-1 bg-amber-100 text-amber-800 rounded-lg text-xs">
-                  Operating in offline mode with limited functionality
-                </div>
-              </div>
-            )}
           </div>
           
-          {/* Product suggestions */}
-          {productSuggestions.length > 0 && (
-            <div className="mt-8 mb-4">
-              <AISuggestionsGrid suggestions={productSuggestions} />
+          {/* Product suggestions grid - we'll display this separately from the messages */}
+          {messages.some(m => m.products && m.products.length > 0) && (
+            <div className="mt-8 mb-4 bg-black/20 p-4 rounded-xl">
+              <h3 className="text-md font-medium text-gray-200 mb-4">Featured Products</h3>
+              {messages.map((message, index) => (
+                message.products && message.products.length > 0 && (
+                  <div key={`products-${message.id}`} className="mt-2">
+                    <AISuggestionsGrid suggestions={message.products} />
+                  </div>
+                )
+              ))}
             </div>
           )}
         </ScrollArea>
@@ -322,7 +275,7 @@ export default function AiChatInterface({ isMinimized = false, isFullPage = fals
         <Input
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder="Ask about styles, outfits, trends..."
+          placeholder={showOnlySuggestions ? "Search for clothing suggestions..." : "Ask about styles, outfits, trends..."}
           className="bg-gray-800/70 backdrop-blur-sm border-gray-700/50 rounded-xl pr-12 text-white focus-visible:ring-deepblue-500 transition-colors duration-300"
         />
         <Button

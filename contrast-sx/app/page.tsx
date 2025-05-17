@@ -6,13 +6,10 @@ import { motion, AnimatePresence } from "framer-motion"
 import AiChatInterface from "@/components/ai-chat-interface"
 import SearchInterface from "@/components/search-interface"
 import AnimatedBackground from "@/components/animated-background"
-import ThemeToggle from "@/components/theme-toggle"
 import IntroAnimation from "@/components/intro-animation"
 import SidePanel from "@/components/side-panel"
 import MinimizedAiChat from "@/components/minimized-ai-chat"
 import ProductGrid from "@/components/product-grid"
-import { Button } from "@/components/ui/button"
-import { Compass } from "lucide-react"
 import { useRouter } from "next/navigation"
 
 export default function Home() {
@@ -127,58 +124,6 @@ export default function Home() {
 
       {/* Animated Background */}
       <AnimatedBackground />
-
-      {/* Minimal Header */}
-      <motion.header
-        initial={{ y: -20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.6, delay: 3.2 }}
-        className="px-8 py-4 flex items-center justify-between bg-white dark:bg-black border-b border-gray-100 dark:border-gray-800 relative z-10 transition-colors duration-300"
-      >
-        <div className="flex items-center">
-          <Link href="/" className="text-2xl font-bold tracking-tight dark:text-white mr-8">
-            Contrast
-          </Link>
-
-          <Link href="/explore">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-sm font-medium flex items-center gap-2 dark:text-gray-300 hover:text-deepblue-600 dark:hover:text-deepblue-400"
-            >
-              <Compass className="h-4 w-4" />
-              Explore
-            </Button>
-          </Link>
-        </div>
-
-        {/* Search bar moves to header after search */}
-        <AnimatePresence mode="wait">
-          {hasSearched && (
-            <motion.div
-              className="flex-1 max-w-xl mx-4"
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.2 }}
-            >
-              <SearchInterface onSearch={handleSearch} initialValue={searchQuery} compact={true} />
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        <div className="flex items-center gap-4">
-          <ThemeToggle />
-          <Button variant="ghost" size="sm" className="text-sm font-medium dark:text-gray-300">
-            Sign In
-          </Button>
-          <Button
-            size="sm"
-            className="rounded-full bg-deepblue-600 text-white hover:bg-deepblue-700"
-          >
-            Join
-          </Button>
-        </div>
-      </motion.header>
 
       {/* Main Content */}
       <main className="flex-1 relative z-10 bg-transparent flex overflow-hidden">

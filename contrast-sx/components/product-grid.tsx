@@ -291,63 +291,87 @@ export default function ProductGrid({ searchQuery }: ProductGridProps) {
 
   return (
     <div>
-      {/* Display active filters info */}
-      {filters && (
-        <div className="flex flex-wrap items-center gap-2 mb-4 text-sm text-gray-500 dark:text-gray-400">
-          <span className="mr-2">Filters:</span>
-          {filters.map((filter, index) => 
+      {/* Active filters */}
+      {activeFilters() && (
+        <div className="flex flex-wrap gap-2 mb-6">
+          <div className="text-sm text-gray-500 dark:text-gray-400 mr-2">Filters:</div>
+          {activeFilters()?.map((filter, index) => (
             typeof filter === 'string' ? (
-              <span key={index} className="bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded-full">
+              <div 
+                key={index} 
+                className="px-3 py-1 bg-gray-200 dark:bg-gray-800 rounded-full text-sm"
+              >
                 {filter}
-              </span>
-            ) : filter.type === 'color' ? (
-              <div key={index} className="bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded-full flex items-center">
-                <span>{filter.text}</span>
-                <div className="flex ml-1 gap-1">
-                  {filter.colors.map((color, i) => (
+              </div>
+            ) : (
+              <div 
+                key={index} 
+                className="px-3 py-1 bg-gray-200 dark:bg-gray-800 rounded-full text-sm flex items-center gap-2"
+              >
+                {filter.text}
+                <div className="flex -space-x-1">
+                  {filter.colors.slice(0, 3).map((color, i) => (
                     <div 
-                      key={i}
-                      className="w-3 h-3 rounded-full"
-                      style={{ 
-                        backgroundColor: color.toLowerCase(),
-                        border: color.toLowerCase() === 'white' ? '1px solid #ccc' : 'none'
-                      }}
-                      title={color}
+                      key={i} 
+                      className="w-4 h-4 rounded-full border border-white dark:border-gray-600" 
+                      style={{backgroundColor: color}}
                     />
                   ))}
                 </div>
-                <button 
-                  className="ml-2 text-gray-500 hover:text-red-500"
-                  onClick={clearColorFilters}
-                  title="Clear color filters"
-                >
-                  ×
-                </button>
               </div>
-            ) : (
-              <span key={index} className="bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded-full">
-                {filter.text}
-              </span>
             )
-          )}
-          <span className="text-gray-500 ml-2">
-            ({filteredProducts.length} of {products.length} products)
-          </span>
+          ))}
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-xs"
+            onClick={clearAllFilters}
+          >
+            Clear all
+          </Button>
         </div>
       )}
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mt-6">
-        {paginatedProducts.map((product) => (
-          <ProductCard key={product.id} product={product} />
-        ))}
-      </div>
       
-      {/* Pagination component */}
-      <Pagination 
-        currentPage={currentPage} 
-        totalPages={totalPages} 
-        onPageChange={handlePageChange} 
-      />
+      {filteredProducts.length === 0 ? (
+        <div className="text-center py-12">
+          <p className="text-gray-600 dark:text-gray-400 text-lg">
+            No products match your filters
+          </p>
+          <Button
+            variant="outline"
+            size="sm"
+            className="mt-4"
+            onClick={clearAllFilters}
+          >
+            Clear all filters
+          </Button>
+        </div>
+      ) : (
+        <>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mt-6">
+            {paginatedProducts.map((product) => (
+              <ProductCard 
+                key={product.id} 
+                product={{
+                  ...product,
+                  // Ensure imageUrl is set if missing
+                  imageUrl: product.imageUrl || (product.images && product.images.length > 0 ? product.images[0].src : '/placeholder.svg')
+                }} 
+              />
+            ))}
+          </div>
+          
+          {totalPages > 1 && (
+            <div className="mt-12 flex justify-center">
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={handlePageChange}
+              />
+            </div>
+          )}
+        </>
+      )}
     </div>
   )
 }

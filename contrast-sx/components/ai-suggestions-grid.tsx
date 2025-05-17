@@ -54,59 +54,42 @@ export default function AISuggestionsGrid({ suggestions }: AISuggestionsGridProp
 
 function ProductSuggestionCard({ product }: { product: ProductSuggestion }) {
   const [isImageLoading, setIsImageLoading] = useState(true)
-
-  // Format price to display with currency
   const formattedPrice = `Rs. ${product.price}`
-  
   return (
-    <Card className="overflow-hidden h-full flex flex-col transition-all duration-200 hover:shadow-md group border border-gray-200 dark:border-gray-800">
-      <div className="relative aspect-square overflow-hidden bg-gray-100 dark:bg-gray-900">
-        {isImageLoading && (
-          <div className="absolute inset-0 flex items-center justify-center bg-gray-100 dark:bg-gray-900">
-            <div className="w-8 h-8 border-2 border-deepblue-600 border-t-transparent rounded-full animate-spin"></div>
-          </div>
-        )}
-        <Image
-          src={product.image || "/placeholder.svg"}
-          alt={product.name}
-          fill
-          sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
-          className={`object-cover transition-all duration-300 group-hover:scale-105 ${
-            isImageLoading ? "opacity-0" : "opacity-100"
-          }`}
-          onLoadingComplete={() => setIsImageLoading(false)}
-        />
-        <Badge className="absolute top-2 right-2 bg-white dark:bg-black text-black dark:text-white font-medium">
-          {product.store}
-        </Badge>
-      </div>
-      
-      <CardContent className="p-4 flex flex-col flex-grow">
-        <h3 className="font-medium text-gray-900 dark:text-white">{product.name}</h3>
-        <p className="text-lg font-semibold text-deepblue-600 dark:text-deepblue-500 mt-1">
-          {formattedPrice}
-        </p>
-        
-        <div className="mt-auto pt-4 flex items-center justify-between">
-          <Link href={product.url} target="_blank" rel="noopener noreferrer">
-            <Button 
-              variant="outline" 
-              size="sm" 
-              className="text-xs"
-            >
-              View Details
-              <ExternalLink className="ml-1 h-3 w-3" />
-            </Button>
-          </Link>
-          
-          <Link 
-            href={`/product/${product.id}`} 
-            className="text-sm text-deepblue-600 hover:text-deepblue-800 dark:text-deepblue-500 dark:hover:text-deepblue-400"
-          >
-            Compare Prices
-          </Link>
+    <Link href={product.url} target="_blank" rel="noopener noreferrer" className="block h-full">
+      <Card className="overflow-hidden h-full flex flex-col transition-all duration-200 hover:shadow-md group border border-gray-200 dark:border-gray-800 cursor-pointer">
+        <div className="relative aspect-square overflow-hidden bg-gray-100 dark:bg-gray-900">
+          {isImageLoading && (
+            <div className="absolute inset-0 flex items-center justify-center bg-gray-100 dark:bg-gray-900">
+              <div className="w-8 h-8 border-2 border-deepblue-600 border-t-transparent rounded-full animate-spin"></div>
+            </div>
+          )}
+          <Image
+            src={product.image || "/placeholder.svg"}
+            alt={product.name}
+            fill
+            sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+            className={`object-cover transition-all duration-300 group-hover:scale-105 ${
+              isImageLoading ? "opacity-0" : "opacity-100"
+            }`}
+            onLoadingComplete={() => setIsImageLoading(false)}
+          />
+          <Badge className="absolute top-2 right-2 bg-white dark:bg-black text-black dark:text-white font-medium">
+            {product.store}
+          </Badge>
         </div>
-      </CardContent>
-    </Card>
+        <CardContent className="p-4 flex flex-col flex-grow">
+          <h3 className="font-medium text-gray-900 dark:text-white">{product.name}</h3>
+          <p className="text-lg font-semibold text-deepblue-600 dark:text-deepblue-500 mt-1">
+            {formattedPrice}
+          </p>
+          <div className="mt-auto pt-4 flex items-center justify-end">
+            <span className="text-sm text-deepblue-600 hover:text-deepblue-800 dark:text-deepblue-500 dark:hover:text-deepblue-400">
+              Compare Prices
+            </span>
+          </div>
+        </CardContent>
+      </Card>
+    </Link>
   )
 } 

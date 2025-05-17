@@ -4,8 +4,6 @@ import { useState, useEffect } from "react"
 import Link from "next/link"
 import { motion } from "framer-motion"
 import { Compass } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import ThemeToggle from "@/components/theme-toggle"
 import AnimatedBackground from "@/components/animated-background"
 import SidePanel from "@/components/side-panel"
 import ProductGrid from "@/components/product-grid"
@@ -72,41 +70,10 @@ export default function ExplorePage() {
     },
   }
 
-  const headerVariants = {
-    hidden: { y: -20, opacity: 0 },
-    visible: {
-      y: 0,
-      opacity: 1,
-      transition: {
-        duration: 0.6,
-      },
-    },
-  }
-
   return (
     <div className="min-h-screen flex flex-col relative bg-[#f8f9fc] dark:bg-matteblack transition-colors duration-300">
       {/* Animated background (hidden after initial load) */}
       {showBackground && <AnimatedBackground />}
-
-      {/* Header */}
-      <header className="px-8 py-4 flex items-center justify-between bg-white dark:bg-black border-b border-gray-100 dark:border-gray-800 relative z-10 transition-colors duration-300">
-        <Link href="/" className="text-2xl font-bold tracking-tight dark:text-white">
-          Contrast
-        </Link>
-
-        <div className="flex items-center gap-4">
-          <ThemeToggle />
-          <Button variant="ghost" size="sm" className="text-sm font-medium dark:text-gray-300">
-            Sign In
-          </Button>
-          <Button
-            size="sm"
-            className="rounded-full bg-deepblue-600 text-white hover:bg-deepblue-700 dark:hover:bg-deepblue-700"
-          >
-            Join
-          </Button>
-        </div>
-      </header>
 
       {/* Main content */}
       <div className="flex-1 flex">

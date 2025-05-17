@@ -9,7 +9,7 @@ export type PricePoint = {
 }
 
 export type Product = {
-  id: number
+  id: string | number
   name: string
   brand: string
   price: number
@@ -24,4 +24,6 @@ export type Product = {
   tags: string[]
   retailerUrl: string
   retailerName?: string
+  discount?: number
+  imageUrl?: string
 }

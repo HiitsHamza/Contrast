@@ -185,7 +185,7 @@ const config = {
       "value": "prisma-client-js"
     },
     "output": {
-      "value": "/Users/humzanoor/Documents/NOTH/Contrast/contrast-sx/lib/generated/prisma",
+      "value": "D:\\R\\contrast github\\Contrast\\contrast-sx\\lib\\generated\\prisma",
       "fromEnvVar": null
     },
     "config": {
@@ -194,16 +194,21 @@ const config = {
     "binaryTargets": [
       {
         "fromEnvVar": null,
-        "value": "darwin-arm64",
+        "value": "windows",
         "native": true
+      },
+      {
+        "fromEnvVar": null,
+        "value": "rhel-openssl-3.0.x"
       }
     ],
     "previewFeatures": [],
-    "sourceFilePath": "/Users/humzanoor/Documents/NOTH/Contrast/contrast-sx/prisma/schema.prisma",
+    "sourceFilePath": "D:\\R\\contrast github\\Contrast\\contrast-sx\\prisma\\schema.prisma",
     "isCustomOutput": true
   },
   "relativeEnvPaths": {
-    "rootEnvPath": null
+    "rootEnvPath": null,
+    "schemaEnvPath": "../../../.env"
   },
   "relativePath": "../../../prisma",
   "clientVersion": "6.7.0",
@@ -212,7 +217,7 @@ const config = {
     "db"
   ],
   "activeProvider": "postgresql",
-  "postinstall": true,
+  "postinstall": false,
   "inlineDatasources": {
     "db": {
       "url": {
@@ -221,8 +226,8 @@ const config = {
       }
     }
   },
-  "inlineSchema": "generator client {\n  provider = \"prisma-client-js\"\n  output   = \"../lib/generated/prisma\"\n}\n\ndatasource db {\n  provider = \"postgresql\"\n  url      = env(\"DATABASE_URL\")\n}\n\n/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.\nmodel listofscrapers {\n  id            Int           @id @default(autoincrement())\n  name          String        @unique\n  status        String?       @default(\"healthy\")\n  created_on    DateTime      @default(now()) @db.Timestamp(6)\n  last_modified DateTime?     @default(now()) @db.Timestamp(6)\n  last_ran      DateTime?     @db.Timestamp(6)\n  spider_logs   spider_logs[]\n}\n\nmodel product_prices {\n  price_id     Int      @id @default(autoincrement())\n  product_id   Int\n  price        Decimal  @db.Decimal(10, 2)\n  retrieved_on DateTime @default(now()) @db.Timestamp(6)\n  products     products @relation(fields: [product_id], references: [product_id], onDelete: Cascade, onUpdate: NoAction)\n}\n\nmodel products {\n  product_id     Int              @id @default(autoincrement())\n  store_id       Int\n  product_name   String           @db.VarChar(255)\n  product_url    String           @unique\n  is_active      Boolean?         @default(true)\n  created_at     DateTime?        @default(now()) @db.Timestamp(6)\n  image_urls     String[]\n  latest_price   Int?\n  categories     String?\n  product_prices product_prices[]\n  stores         stores           @relation(fields: [store_id], references: [store_id], onDelete: Cascade, onUpdate: NoAction)\n}\n\nmodel shahzar_table {\n  id    Int     @id @default(autoincrement())\n  name  String\n  price Decimal @db.Decimal(10, 2)\n  image String\n  url   String\n  store String\n}\n\nmodel spider_logs {\n  id                  Int            @id @default(autoincrement())\n  scraper_id          Int\n  scraper_name        String\n  celery_trigger_time DateTime       @db.Timestamp(6)\n  actual_start_time   DateTime       @db.Timestamp(6)\n  end_time            DateTime?      @db.Timestamp(6)\n  duration_seconds    Int?\n  retries             Int?           @default(0)\n  result              String?\n  terminal_notes      String?\n  listofscrapers      listofscrapers @relation(fields: [scraper_id], references: [id], onDelete: Cascade, onUpdate: NoAction)\n}\n\nmodel stores {\n  store_id          Int        @id @default(autoincrement())\n  store_name        String     @unique @db.VarChar(255)\n  last_retrieved_on DateTime?  @db.Timestamp(6)\n  created_at        DateTime?  @default(now()) @db.Timestamp(6)\n  products          products[]\n}\n",
-  "inlineSchemaHash": "6e9b2f31c67a2b67c8b565ac67e02b74a47412e2e2ee7ed9a6bd1107d45c30ff",
+  "inlineSchema": "generator client {\n  provider      = \"prisma-client-js\"\n  output        = \"../lib/generated/prisma\"\n  binaryTargets = [\"native\", \"rhel-openssl-3.0.x\"]\n}\n\ndatasource db {\n  provider = \"postgresql\"\n  url      = env(\"DATABASE_URL\")\n}\n\n/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.\nmodel listofscrapers {\n  id            Int           @id @default(autoincrement())\n  name          String        @unique\n  status        String?       @default(\"healthy\")\n  created_on    DateTime      @default(now()) @db.Timestamp(6)\n  last_modified DateTime?     @default(now()) @db.Timestamp(6)\n  last_ran      DateTime?     @db.Timestamp(6)\n  spider_logs   spider_logs[]\n}\n\nmodel product_prices {\n  price_id     Int      @id @default(autoincrement())\n  product_id   Int\n  price        Decimal  @db.Decimal(10, 2)\n  retrieved_on DateTime @default(now()) @db.Timestamp(6)\n  products     products @relation(fields: [product_id], references: [product_id], onDelete: Cascade, onUpdate: NoAction)\n}\n\nmodel products {\n  product_id     Int              @id @default(autoincrement())\n  store_id       Int\n  product_name   String           @db.VarChar(255)\n  product_url    String           @unique\n  is_active      Boolean?         @default(true)\n  created_at     DateTime?        @default(now()) @db.Timestamp(6)\n  image_urls     String[]\n  latest_price   Int?\n  categories     String?\n  product_prices product_prices[]\n  stores         stores           @relation(fields: [store_id], references: [store_id], onDelete: Cascade, onUpdate: NoAction)\n}\n\nmodel shahzar_table {\n  id    Int     @id @default(autoincrement())\n  name  String\n  price Decimal @db.Decimal(10, 2)\n  image String\n  url   String\n  store String\n}\n\nmodel spider_logs {\n  id                  Int            @id @default(autoincrement())\n  scraper_id          Int\n  scraper_name        String\n  celery_trigger_time DateTime       @db.Timestamp(6)\n  actual_start_time   DateTime       @db.Timestamp(6)\n  end_time            DateTime?      @db.Timestamp(6)\n  duration_seconds    Int?\n  retries             Int?           @default(0)\n  result              String?\n  terminal_notes      String?\n  listofscrapers      listofscrapers @relation(fields: [scraper_id], references: [id], onDelete: Cascade, onUpdate: NoAction)\n}\n\nmodel stores {\n  store_id          Int        @id @default(autoincrement())\n  store_name        String     @unique @db.VarChar(255)\n  last_retrieved_on DateTime?  @db.Timestamp(6)\n  created_at        DateTime?  @default(now()) @db.Timestamp(6)\n  products          products[]\n}\n",
+  "inlineSchemaHash": "ae62502f3f350d9b4594ec565d531c35c04c7720f226493e4abb4127d748d3c9",
   "copyEngine": true
 }
 
@@ -261,8 +266,12 @@ exports.PrismaClient = PrismaClient
 Object.assign(exports, Prisma)
 
 // file annotations for bundling tools to include these files
-path.join(__dirname, "libquery_engine-darwin-arm64.dylib.node");
-path.join(process.cwd(), "lib/generated/prisma/libquery_engine-darwin-arm64.dylib.node")
+path.join(__dirname, "query_engine-windows.dll.node");
+path.join(process.cwd(), "lib/generated/prisma/query_engine-windows.dll.node")
+
+// file annotations for bundling tools to include these files
+path.join(__dirname, "libquery_engine-rhel-openssl-3.0.x.so.node");
+path.join(process.cwd(), "lib/generated/prisma/libquery_engine-rhel-openssl-3.0.x.so.node")
 // file annotations for bundling tools to include these files
 path.join(__dirname, "schema.prisma");
 path.join(process.cwd(), "lib/generated/prisma/schema.prisma")
